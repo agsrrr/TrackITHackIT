@@ -21,9 +21,9 @@
             <tbody>
                 {% for expense in expenses %}
                     <tr>
-                        <td>{{ expense['description'] }}</td>
-                        <td>{{ expense['amount'] }}</td>
-                        <td>{{ expense['date'] }}</td>
+                        <td>{{ expense[2] }}</td>
+                        <td>{{ expense[3] }}</td>
+                        <td>{{ expense[4] }}</td>
                     </tr>
                 {% endfor %}
             </tbody>
