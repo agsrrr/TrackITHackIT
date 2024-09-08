@@ -56,10 +56,11 @@ def login():
             flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', form=form)
 
-@app.route('/logout')
+@app.route('/logout',methods=['POST'])
+@login_required
 def logout():
     logout_user()
-    return redirect(url_for('home'))
+    return redirect(url_for('login'))
 # app.py
 
 @app.route('/add_expense', methods=['GET', 'POST'])
@@ -68,7 +69,7 @@ def add_expense():
     form = ExpenseForm()
     if form.validate_on_submit():
         insert_db('INSERT INTO expenses (user_id, description, amount, date) VALUES (?, ?, ?, ?)',
-                  (current_user.id, form.description.data, form.amount.data, form.date.data))
+                  (current_user.id, form.description.data, float(form.amount.data), form.date.data))
         flash('Expense added successfully!', 'success')
         return redirect(url_for('home'))
     return render_template('add_expense.html', form=form)
