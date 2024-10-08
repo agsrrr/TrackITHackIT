@@ -1,3 +1,5 @@
+from datetime import datetime
+import datetime
 import sqlite3
 from flask import g
 from flask_login import UserMixin
@@ -25,6 +27,12 @@ def query_db(query, args=(), one=False):
     cur.close()
     return (rv[0] if rv else None) if one else rv
 
+def delete_db(query, args=()):
+    db = get_db()
+    cur = db.execute(query, args)
+    db.commit()
+    cur.close()
+    
 def insert_db(query, args=()):
     db = get_db()
     cur = db.execute(query, args)
@@ -47,3 +55,74 @@ def init_db(app):
         with app.open_resource('schema.sql', mode='r') as f:
             db.cursor().executescript(f.read())
         db.commit()
+# Assuming you are using SQLAlchemy or some other ORM
+
+def get_total_income(user_id):
+    # Query to calculate total income for the user
+    query = 'SELECT SUM(amount) FROM expenses WHERE user_id = ? AND is_income = 1'
+    db=get_db()
+    result = db.execute(query, (user_id,)).fetchone()
+    return result[0] if result[0] is not None else 0
+
+
+def get_total_expenses(user_id):
+    # Query to calculate total expenses for the user
+    query = 'SELECT SUM(amount) FROM expenses WHERE user_id = ? AND is_income = 0'
+    db=get_db()
+    result = db.execute(query, (user_id,)).fetchone()
+    return result[0] if result[0] is not None else 0
+
+
+def get_budget(user_id):
+    # Query to fetch user's current budget
+    query = 'SELECT monthly_budget FROM  budgets WHERE id = ?'
+    db=get_db()
+    result = db.execute(query, (user_id,)).fetchone()
+    return result[0] if result[0] is not None else 0
+
+def get_budgets_and_expenses(user_id):
+    query = '''
+        SELECT 
+            c.name, 
+            IFNULL(b.monthly_budget, 0) AS monthly_budget, 
+            IFNULL(SUM(e.amount), 0) AS total_expense
+        FROM 
+            category c 
+        LEFT JOIN 
+            budgets b ON c.id = b.category_id AND b.user_id = ?
+        LEFT JOIN 
+            expenses e ON c.id = e.category_id AND e.user_id = ? AND strftime('%Y-%m', e.date) = strftime('%Y-%m', 'now')
+        WHERE c.is_income=0
+         GROUP BY 
+            c.id, c.name, b.monthly_budget
+    '''
+    return query_db(query, [user_id, user_id])
+
+def get_expenses_by_category(user_id):
+    db = get_db()
+     
+    current_date = datetime.date.today()
+    first_day_of_month = current_date.replace(day=1)
+    query = '''
+        SELECT e.category_id, SUM(e.amount) as total_expense, c.name AS category_name 
+        FROM expenses e 
+        JOIN category c ON e.category_id = c.id 
+        WHERE user_id = ?  AND date >= ? AND date < ?
+        GROUP BY c.name
+    '''
+    result = db.execute(query,(user_id, first_day_of_month, first_day_of_month.replace(month=current_date.month % 12 + 1))).fetchall()
+    return result
+
+
+def get_recent_transactions(user_id):
+    # Query to fetch the most recent transactions
+    query = '''
+        SELECT description, category_id, amount, date
+        FROM expenses
+        WHERE user_id = ?
+        ORDER BY date DESC
+        LIMIT 7
+    '''
+    db=get_db()
+    result = db.execute(query, (user_id,)).fetchall()
+    return result
