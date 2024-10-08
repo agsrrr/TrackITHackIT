@@ -9,7 +9,7 @@ body, h1, h2, h3, p, input, button {
 
 body {
     font-family: Arial, sans-serif;
-    background: linear-gradient(to right, #0062E6, #33AEFF);
+    background: #5e35b1;
     color: #333;
     display: flex;
     align-items: center;
@@ -50,7 +50,7 @@ form button {
     padding: 10px;
     border: none;
     border-radius: 5px;
-    background-color: #007bff;
+    background-color: #5e35b1;
     color: #fff;
     font-size: 16px;
     cursor: pointer;
@@ -78,11 +78,12 @@ form button:hover {
 }
 
 a {
-    color: #007bff;
+    color: #5e35b1;
     text-decoration: none;
 }
 
 a:hover {
+    color:  #5e35b1;
     text-decoration: underline;
 }
 
@@ -92,7 +93,7 @@ a:hover {
     margin-bottom: 10px;
 }
 
-.form-check input {
+#sidebar-wrapper {
     margin-right: 10px;
 }
 
@@ -122,4 +123,14 @@ thead {
 
 tbody tr:nth-child(even) {
     background-color: #f9f9f9;
+}
+#expensesChart {
+    width: 150% !important; /* Full width of the container */
+    height: 600px !important; /* Adjust height as needed */
+}
+#logo {
+    display: block;
+    margin: 0 auto 20px;
+    max-width: 80%; /* Use max-width for responsive sizing */
+    height: auto; /* Maintain aspect ratio */
 }

@@ -1,5 +1,6 @@
+from typing import Optional
 from flask_wtf import FlaskForm
-from wtforms import DateField, DecimalField, StringField, PasswordField, SubmitField, BooleanField
+from wtforms import DateField, DecimalField, SelectField, StringField, PasswordField, SubmitField, BooleanField
 from wtforms.validators import DataRequired, Length, Email, EqualTo, ValidationError
 from database import query_db
 
@@ -35,3 +36,12 @@ class ExpenseForm(FlaskForm):
     amount = DecimalField('Amount', validators=[DataRequired()], places=2)
     date = DateField('Date', format='%Y-%m-%d', validators=[DataRequired()])
     submit = SubmitField('Add Expense')
+class RecurringExpenseForm(FlaskForm):
+    description = StringField('Description', validators=[DataRequired()])
+    amount = DecimalField('Amount', validators=[DataRequired()])
+    start_date = DateField('Start Date', validators=[DataRequired()])
+    period=StringField('period')
+    end_date = DateField('End Date', validators=[DataRequired()])
+    category = DecimalField()
+    submit = SubmitField('Add Recurring Expense')
+
