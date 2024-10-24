@@ -35,6 +35,7 @@
                  <span class="badge badge-pill badge-danger">{{ unread_count }}</span>
                 {% endif %}
                 </a>
+                <a href="{{ url_for('tax_calculator') }}" class="list-group-item list-group-item-action  text-light {% if request.endpoint == 'tax_calculator' %}active{% endif %}">Calculate your Tax</a>
 
                 <!-- Logout Button Form -->
                 <form action="{{ url_for('logout') }}" method="POST" style="display: inline;">
