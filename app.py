@@ -1363,6 +1363,50 @@ def admin_view_report_expense():
         ];
         return render_template("admin_view_report_expense.html",backgroundColors=backgroundColors, categories=categories, values=values,report_type=report_type, filter_type=filter_type,start_date=start_date,end_date=end_date)
     
+@app.route('/tax_calculator', methods=['GET', 'POST'])
+def tax_calculator():
+    tax_result = None
+    federal_tax = None
+    state_tax = None
+    if request.method == 'POST':
+        try:
+            income = float(request.form['income'])
+            tax_deductions = float(request.form.get('deductions', 0))
+            taxable_income = max(0, income - tax_deductions)  # Ensure taxable income is not negative
+            federal_rate = float(request.form['federal_tax_rate'])
+            state_rate = float(request.form['state_tax_rate'])
+
+            # Basic progressive tax rates for federal (example)
+            federal_tax = calculate_progressive_tax(taxable_income, federal_rate)
+
+            # State tax (flat percentage)
+            state_tax = taxable_income * (state_rate / 100)
+
+            # Total tax calculation
+            tax_result = federal_tax + state_tax
+        except ValueError:
+            tax_result = "Invalid input. Please enter numeric values."
+
+    return render_template('tax_calculator.html', tax_result=tax_result, federal_tax=federal_tax, state_tax=state_tax)
+
+def calculate_progressive_tax(income, base_rate):
+    # Example of a simple progressive tax calculation
+    tax = 0
+    brackets = [
+        (10000, 0.1),  # 10% for income up to 10,000
+        (30000, 0.2),  # 20% for the next 30,000
+        (float('inf'), 0.3)  # 30% for the remaining income
+    ]
+
+    for limit, rate in brackets:
+        if income > limit:
+            tax += limit * rate
+            income -= limit
+        else:
+            tax += income * rate
+            break
+
+    return tax
 
 
 
