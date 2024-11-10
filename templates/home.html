@@ -26,7 +26,7 @@
             <div class="list-group list-group-flush">
                 <!-- The 'active' class is applied based on the current route -->
                 <a href="{{ url_for('dashboard') }}" class="list-group-item list-group-item-action  text-light {% if request.endpoint == 'dashboard' %}active{% endif %}">Dashboard</a>
-                <a href="{{ url_for('manage_expenses') }}" class="list-group-item list-group-item-action text-light  {% if 'expense' in request.endpoint %}active{% endif %}">Manage Expenses</a>
+                <a href="{{ url_for('manage_expenses') }}" class="list-group-item list-group-item-action text-light  {% if 'expense' in request.endpoint %}active{% endif %}">Manage Transactions</a>
                 <a href="{{ url_for('budget') }}" class="list-group-item list-group-item-action text-light {% if request.endpoint == 'budget' %}active{% endif %}">Manage Budget</a>
                 <a href="{{ url_for('view_report_income') }}" class="list-group-item list-group-item-action  text-light {% if request.endpoint == 'view_reports' %}active{% endif %}">Reports</a>
                 <a href="{{ url_for('profile') }}" class="list-group-item list-group-item-action  text-light {% if request.endpoint == 'profile' %}active{% endif %}">Profile</a>

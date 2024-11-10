@@ -83,7 +83,7 @@ def start_scheduler():
     scheduler = BackgroundScheduler()
     
     # Schedule the job to run once a day (at midnight, for example)
-    scheduler.add_job(func=add_scheduled_recurring_expenses, trigger="interval", minutes =1)
+    scheduler.add_job(func=add_scheduled_recurring_expenses, trigger="interval", days =1)
     scheduler.start()
 
     # Shut down the scheduler when exiting the app
@@ -126,12 +126,18 @@ def register():
     if current_user.is_authenticated:
         return redirect(url_for('home'))
     form = RegistrationForm()
+    
     if form.validate_on_submit():
         hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
         insert_db('INSERT INTO users (username, email, password) VALUES (?, ?, ?)',
                   (form.username.data, form.email.data, hashed_password))
         flash('Your account has been created! You can now log in', 'success')
         return redirect(url_for('login'))
+    elif form.errors:
+        if form.password.data != form.confirm_password.data:
+            flash("password and confirm password must match","danger")
+        else:
+            flash('Username or emailid already exists',"danger")
     return render_template('register.html', form=form)
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -139,6 +145,7 @@ def login():
     
     if current_user.is_authenticated:
         return redirect(url_for('home'))
+    
     
     form = LoginForm()
     if form.validate_on_submit():
@@ -149,8 +156,9 @@ def login():
             if user[1]=='Admin':
                 return redirect(url_for('admin_dashboard'))
             return redirect(url_for('dashboard'))
-        else:
-            flash('Login Unsuccessful. Please check email and password', 'danger')
+        flash('Login Unsuccessful. Please check email and password', 'danger')
+    elif form.errors:   
+        flash('Login Unsuccessful. Please check email and password', 'danger')
     return render_template('login.html', form=form)
 
 @app.route('/logout',methods=['POST'])
@@ -228,7 +236,7 @@ def admin_request():
 def resolve_request(request_id):
     query = '''UPDATE concerns SET resolved = 1 WHERE id = ?'''
     insert_db(query, [request_id])
-    flash('Request marked as resolved')
+    flash('Request marked as resolved','success')
     return redirect(url_for('admin_request'))
 
 # Delete a request
@@ -237,7 +245,7 @@ def resolve_request(request_id):
 def delete_request(request_id):
     query = '''DELETE FROM concerns WHERE id = ?'''
     insert_db(query, [request_id])
-    flash('Request deleted successfully')
+    flash('Request deleted successfully','success')
     return redirect(url_for('admin_request'))
 
 
@@ -337,6 +345,11 @@ def add_expenses():
         date = request.form['date']
         description = request.form['description']
         amount = float(request.form['amount'])
+        if (amount<=0):
+            flash("enter a valid positive amount","danger")
+            categories = query_db('SELECT id, name, is_income FROM category')
+            return render_template('add_expenses.html', categories=categories)
+
         category_id = request.form['category']
         file = request.files['document']
         type = int(request.form['type'])
@@ -364,13 +377,16 @@ def add_expenses():
         result = query_db('SELECT monthly_budget FROM budgets WHERE user_id = ? AND category_id = ?', [current_user.id , category_id])
         if result:
           category_budget = result[0][0]
+          
         else:
     # Handle the case when there is no budget
-          category_budget = 0   
+          category_budget = 0  
+        if category_budget=='':
+            category_budget=0 
         catego = query_db('SELECT name From category WHERE id = ?', [category_id])
         print (total_expenses)
         print(category_budget)
-        if total_expenses > category_budget:
+        if category_budget>0 and total_expenses > category_budget:
             # Create a notification for the user
             message = f'You have exceeded the budget for the {catego[0][0]} by {total_expenses - category_budget}!'
             insert_db('INSERT INTO notifications (user_id, message) VALUES (?, ?)', [current_user.id, message])
@@ -482,7 +498,11 @@ def edit_expense(expense_id):
         amount = request.form['amount']
         date = request.form['date']
         category_id = request.form['category']
-
+        if float(amount)<=0:
+          flash("invalid amount, please provide a positive amount","danger")
+          categories = query_db('SELECT * FROM category')
+    
+          return render_template('edit_expense.html', expense=expense, categories=categories)
         # Handle file upload if a new document is provided
         file = request.files['document']
         if file and allowed_file(file.filename):
@@ -543,7 +563,12 @@ def add_recurring_expense():
         period = form.period.data
         category_id = int(form.category.data)
         end_date = form.end_date.data or None
-        
+        if float(amount)<=0:
+            flash("invalid amount, please add positive amount","danger")
+            categories = query_db('SELECT * FROM category')
+            choices = query_db('SELECT * FROM choices')
+            return render_template('add_recurring_expense.html', form=form, categories=categories, choices=choices)
+
         # Calculate the next due date (initially, it's the start date)
         next_due_date = start_date
         
@@ -680,6 +705,14 @@ def edit_recurring_expense(expense_id):
         category_id = request.form['category']
         period=request.form['period']
 
+        
+        if float(amount)<=0:
+            flash("invalid amount, please add positive amount","danger")
+            categories = query_db('SELECT * FROM category')
+            period = query_db('SELECT * FROM choices')
+    
+            return render_template('edit_recurring_expenses.html', expense=expense, categories=categories,period=period)
+
         # Handle file upload if a new document is provided
         file = request.files['document']
         if file and allowed_file(file.filename):
@@ -740,6 +773,7 @@ def profile():
     # Fetch current user's profile
     user = query_db('SELECT * FROM users WHERE id=?', [current_user.id], one=True)
     if request.method == 'POST':
+     try:
         # Get form data
         full_name = request.form['full_name']
         email = request.form['email']
@@ -758,10 +792,11 @@ def profile():
         # Update the user's profile in the database (assuming you have a current_user object)
         insert_db('UPDATE users SET Fullname=?, email=?, Phonenumber=?, address=?, document=? WHERE id=?',
          (full_name, email, phone_number, address, file_path, current_user.id))
-
+ 
         flash('Profile updated successfully!', 'success')
         return redirect(url_for('profile'))
-
+     except:
+        flash('Email already exists, please edit the profile again with valid details ','danger')
     
 
     return render_template('profile.html', user=user)
@@ -775,14 +810,22 @@ def admin_category_manage():
         
         if action_type == 'add_category':
             category_name = request.form.get('category_name')
+            category_type=request.form.get('Category_type')
+            type=0
+            if category_type == "Income":
+                type=1
             if category_name:
-                insert_db("INSERT INTO category (name) VALUES (?)", [category_name])
+                insert_db("INSERT INTO category (name,is_income) VALUES (?,?)", [category_name,type])
                 flash('Category added!', 'success')
             return redirect(url_for('admin_category_manage'))
         elif action_type =="edit_category":
              category_id = request.form.get('category_id')
              category_name= request.form.get('category_name')
-             insert_db("UPDATE category SET name=? WHERE id =?", [category_name, category_id])
+             category_type= request.form.get('category_type_e')
+             type=0
+             if category_type=="Income":
+                 type=1
+             insert_db("UPDATE category SET name=?,is_income=? WHERE id =?", [category_name,type, category_id])
         elif action_type == 'delete_category':
             category_id = request.form.get('category_id')
             in_expense=query_db("SELECT category_id FROM expenses WHERE category_id=?",[category_id])
@@ -835,9 +878,10 @@ def admin_actions():
                 user = query_db("SELECT id FROM USERS where email=?",[email])
                 if user:
                     #Anand do the dlete user query here
+                    insert_db("DELETE FROM USERS where email=?",[email])
                     flash('User deleted!', 'success')
                 else:
-                    flash('Error deleting user!', 'danger')
+                    flash('User does not exits!', 'danger')
             return redirect(url_for('admin_actions'))
 
         elif action_type == 'send_custom_email':
@@ -1239,7 +1283,7 @@ def admin_view_report_income():
         # Initialize the base query based on the report_type
         if report_type == 'income':
             base_query = '''
-                SELECT c.name, SUM(e.amount) 
+                SELECT c.name, AVG(e.amount) 
                 FROM category c 
                 LEFT JOIN expenses e ON c.id = e.category_id 
                 WHERE c.is_income = 1  '''
@@ -1273,7 +1317,7 @@ def admin_view_report_income():
             'rgba(255, 159, 64, 0.2)',   # Color for category 6
             'rgba(199, 199, 199, 0.2)',   # Color for category 7
             'rgba(83, 102, 255, 0.2)'     # Color for category 8
-        ];
+        ]
 
         borderColors = [
             'rgba(255, 99, 132, 1)',      # Border color for category 1
@@ -1284,7 +1328,7 @@ def admin_view_report_income():
             'rgba(255, 159, 64, 1)',       # Border color for category 6
             'rgba(199, 199, 199, 1)',       # Border color for category 7
             'rgba(83, 102, 255, 1)'         # Border color for category 8
-        ];
+        ]
         return render_template("admin_view_report_income.html",backgroundColors=backgroundColors, categories=categories, values=values,report_type=report_type, filter_type=filter_type,start_date=start_date,end_date=end_date)
    
 @app.route('/admin_view_report_expense', methods=['GET', 'POST'])
@@ -1311,7 +1355,7 @@ def admin_view_report_expense():
         
         if report_type == 'expense':
             base_query = '''
-                SELECT c.name, SUM(e.amount) 
+                SELECT c.name, AVG(e.amount) 
                 FROM category c 
                 LEFT JOIN expenses e ON c.id = e.category_id 
                 WHERE c.is_income = 0  '''
@@ -1368,6 +1412,12 @@ def tax_calculator():
     tax_result = None
     federal_tax = None
     state_tax = None
+    income = None
+    tax_deductions = None
+    federal_rate = None
+    state_rate=None
+     
+
     if request.method == 'POST':
         try:
             income = float(request.form['income'])
@@ -1387,7 +1437,7 @@ def tax_calculator():
         except ValueError:
             tax_result = "Invalid input. Please enter numeric values."
 
-    return render_template('tax_calculator.html', tax_result=tax_result, federal_tax=federal_tax, state_tax=state_tax)
+    return render_template('tax_calculator.html',state_rate=state_rate,federal_rate=federal_rate,tax_deductions=tax_deductions,income=income, tax_result=tax_result, federal_tax=federal_tax, state_tax=state_tax)
 
 def calculate_progressive_tax(income, base_rate):
     # Example of a simple progressive tax calculation
@@ -1412,7 +1462,7 @@ def calculate_progressive_tax(income, base_rate):
 
 if __name__ == '__main__':
     if len(sys.argv) > 1 and sys.argv[1] == 'init_db':
-        init_db(app)  # Pass the `app` object here
+        init_db(app)  
         print("Database initialized successfully.")
     else:
         app.run(debug=True)

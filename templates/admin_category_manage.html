@@ -40,7 +40,7 @@
                     <button class="btn btn-primary btn-sm" 
                         style="margin-right: 10px;" 
                         data-toggle="modal" data-target="#editCategoryModal" 
-                        onclick="openEditModal({{ category[0] }}, '{{ category[1] }}')">
+                        onclick="openEditModal({{ category[0] }}, '{{ category[1] }}',{{category[2]}})">
                         Edit
                     </button>
 
@@ -64,6 +64,11 @@
         <input type="text" name="category_name" placeholder="New Category Name" required 
             class="form-control mb-2" 
             style="padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+        <select name='Category_type' style="padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+            <option value="Expense">Expense</option>
+            <option value="Income">Income </option>
+
+        </select>
         <button type="submit" class="btn btn-success" 
             style="background-color: #28a745; color: white; padding: 10px 20px; font-size: 14px; border-radius: 5px;">
             Add New Category
@@ -88,6 +93,13 @@
             <div class="form-group">
                 <label for="category_name">Category Name</label>
                 <input type="text" class="form-control" id="category_name" name="category_name" required>
+                <label for="category_type_e">Category Type </label>
+                <br>
+                <select id='category_type_e'name='category_type_e' style="padding: 10px; border-radius: 5px; border: 1px solid #ccc;">
+                  <option value="Expense">Expense</option>
+                  <option value="Income">Income </option>
+
+                </select>
             </div>
         </div>
         <div class="modal-footer">
@@ -101,9 +113,11 @@
 
 <script>
     // Function to open the edit modal and populate it with the current category data
-    function openEditModal(categoryId, categoryName) {
+    function openEditModal(categoryId, categoryName,type) {
         document.getElementById('category_id').value = categoryId;
         document.getElementById('category_name').value = categoryName;
+        if (type==1)
+        document.getElementById('category_type_e').value="Income";
     }
 </script>
 
