@@ -54,17 +54,19 @@
             {{ form.hidden_tag() }}
             <div>
                 {{ form.email.label(class="form-label") }}
-                {{ form.email(class="form-control") }}
+                {{ form.email(class="form-control",placeholder="Enter email") }}
             </div>
             <div>
                 {{ form.password.label(class="form-label") }}
-                {{ form.password(class="form-control") }}
+                {{ form.password(class="form-control",placeholder="Enter password") }}
             </div>
             
-            <button type="submit">Login</button>
+            <button id="login" type="submit">Login</button>
         </form>
+        <br>
         <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
-        <p>Frogot password? <a href="{{ url_for('forgot_password') }}">Click here</a></p>
+        <br>
+        <p>Forgot password? <a href="{{ url_for('forgot_password') }}">Click here</a></p>
     
     </div>
 

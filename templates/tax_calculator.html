@@ -23,25 +23,25 @@
     <!-- Income -->
     <div class="form-group">
         <label for="income">Income</label>
-        <input type="text" class="form-control" id="income" name="income" placeholder="Enter your income" required>
+        <input type="number" value='{{income}}' class="form-control" id="income" name="income" placeholder="Enter your income" required>
     </div>
 
     <!-- Deductions -->
     <div class="form-group">
         <label for="deductions">Deductions</label>
-        <input type="text" class="form-control" id="deductions" name="deductions" placeholder="Enter any deductions">
+        <input type="number" value='{{tax_deductions}}' class="form-control" id="deductions" name="deductions" placeholder="Enter any deductions">
     </div>
 
     <!-- Federal Tax Rate -->
     <div class="form-group">
         <label for="federal_tax_rate">Federal Tax Rate (%)</label>
-        <input type="text" class="form-control" id="federal_tax_rate" name="federal_tax_rate" placeholder="Enter the federal tax rate" required>
+        <input type="number" value='{{federal_rate}}' class="form-control" id="federal_tax_rate" name="federal_tax_rate" placeholder="Enter the federal tax rate" required>
     </div>
 
     <!-- State Tax Rate -->
     <div class="form-group">
         <label for="state_tax_rate">State Tax Rate (%)</label>
-        <input type="text" class="form-control" id="state_tax_rate" name="state_tax_rate" placeholder="Enter the state tax rate" required>
+        <input type="number" value='{{state_rate}}'class="form-control" id="state_tax_rate" name="state_tax_rate" placeholder="Enter the state tax rate" required>
     </div>
 
     <button type="submit" class="btn btn-primary">Calculate Tax</button>

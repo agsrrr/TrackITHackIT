@@ -78,7 +78,9 @@ def get_budget(user_id):
     query = 'SELECT monthly_budget FROM  budgets WHERE id = ?'
     db=get_db()
     result = db.execute(query, (user_id,)).fetchone()
-    return result[0] if result[0] is not None else 0
+    if result is not None and result[0] is not None :
+        return result[0] 
+    return 0
 
 def get_budgets_and_expenses(user_id):
     query = '''

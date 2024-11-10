@@ -14,7 +14,7 @@
         {% endif %}
     {% endwith %}
 <div class="container">
-    <h2>Add Recurring Expense</h2>
+    <h2>Add A Recurring Transaction</h2>
     
     <form method="POST" action="{{ url_for('add_recurring_expense') }}" enctype="multipart/form-data"> 
         {{ form.hidden_tag() }}
@@ -69,7 +69,7 @@
         </div>
 
         <div class="form-group">
-            <label for="end_date">End Date (Optional)</label>
+            <label for="end_date">End Date </label>
             {{ form.end_date(class="form-control", id="end_date") }}
             {% if form.end_date.errors %}
                 <div class="text-danger">
